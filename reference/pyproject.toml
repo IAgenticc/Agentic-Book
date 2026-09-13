@@ -1,0 +1,20 @@
+[project]
+name = "agentic-systems-reference"
+version = "0.1.0"
+description = "Reference implementations from Agentic Systems Engineering: the SRE Agent and the Document Intelligence Agent, plus their shared core"
+requires-python = ">=3.10"
+dependencies = ["pydantic>=2.0.0"]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.30.0"]
+gemini = ["google-genai>=0.1.0"]
+openai-compatible = ["openai>=1.0.0"]
+graph = ["neo4j>=5.0.0"]
+vector = ["psycopg[binary]>=3.1.0", "pgvector>=0.2.0"]
+dev = ["pytest>=7.4.0", "pytest-cov>=4.1.0"]
+
+[tool.setuptools]
+packages = ["agent_core", "sre_agent", "document_intelligence"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

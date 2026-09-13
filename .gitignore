@@ -1,0 +1,27 @@
+# This repository is strictly the book's companion CODE repository.
+# Everything is ignored by default; only the paths explicitly
+# un-ignored below are ever tracked. The book manuscript itself
+# (chapters/, diagrams/, cover/, styles/, typst-partials/, _quarto.yml,
+# and friends) lives in this same working directory but must never be
+# committed here.
+/*
+!/reference/
+!/reference/**
+!/LICENSE
+!/README.md
+!/.gitignore
+
+# Python build artifacts within reference/
+reference/**/__pycache__/
+reference/**/*.egg-info/
+reference/.pytest_cache/
+reference/**/.pytest_cache/
+reference/*.db
+reference/.hypothesis/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Local secrets, never commit
+.env
