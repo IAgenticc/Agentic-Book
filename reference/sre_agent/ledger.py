@@ -22,7 +22,14 @@ class LedgerEntry:
 
 class Ledger:
     def __init__(self, path: str = ":memory:"):
-        self._conn = sqlite3.connect(path)
+        # check_same_thread=False + busy_timeout: a Ledger instance built
+        # once at app startup and shared across every request is genuinely
+        # used from a different thread per request under a real ASGI
+        # server's threadpool, not just in a single-threaded test or CLI
+        # call. See Appendix C for how running this behind FastAPI
+        # surfaced that.
+        self._conn = sqlite3.connect(path, check_same_thread=False)
+        self._conn.execute("PRAGMA busy_timeout = 30000")
         self._conn.execute(
             """
             CREATE TABLE IF NOT EXISTS ledger (

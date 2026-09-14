@@ -31,6 +31,7 @@ scripts/                Live smoke tests, kept out of the pytest suite
 | `ledger.py` | 29 | Audit Ledger |
 | `lease.py` | 34 | Resource Lease |
 | `orchestrator.py` | 41 (case study) | Everything above, wired into one incident-response flow |
+| `api.py` | Appendix C | The same flow behind a real, runnable FastAPI HTTP interface |
 
 ### Document Intelligence Agent (`document_intelligence/`)
 
@@ -52,6 +53,21 @@ scripts/                Live smoke tests, kept out of the pytest suite
 | Module | Chapter | Pattern |
 |---|---|---|
 | `models.py` | 26 | Model Fallback: `FakeModel`, `AnthropicModel`, `GeminiModel`, `OpenAICompatibleModel` |
+
+## Running the API (Appendix C)
+
+```
+cd reference
+pip install -e ".[dev]"
+uvicorn sre_agent.api:app --reload
+```
+
+`POST /incidents` and `GET /incidents/{task_id}/ledger`, backed by exactly `handle_incident`
+from `orchestrator.py`. `tests/test_api.py` covers it end to end: concurrent requests racing
+for the same lease, a repeated request that doesn't re-run a completed step, a circuit that
+opens after repeated failures, and more. Appendix C walks through the same scenarios with
+`curl` and explains a real cross-thread SQLite bug this exact code found the first time it
+ran behind a real server instead of a direct function call.
 
 ## Running the tests
 
