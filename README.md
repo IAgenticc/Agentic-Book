@@ -1,8 +1,10 @@
 # Agentic Systems Engineering: Code Repository
 
+<img src="cover.png" alt="Agentic Systems Engineering cover" width="220" align="right">
+
 Companion code for *Agentic Systems Engineering: Building AI Agents That Actually Work in Production*, by Adrian Morgan Sebuliba.
 
-This repository contains the book's reference implementation only: two complete, tested systems (an SRE Agent and a Document Intelligence Agent) demonstrating every pattern the book covers, plus their test suite and live smoke test scripts. It does not contain the book's text.
+This repository contains the book's reference implementation only: two complete, tested systems (an SRE Agent and a Document Intelligence Agent) demonstrating every pattern the book covers, plus their test suite and live smoke test scripts. It does not contain the book's text, which is a separate, paid work.
 
 ## Getting started
 

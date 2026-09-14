@@ -1,15 +1,18 @@
 # This repository is strictly the book's companion CODE repository.
 # Everything is ignored by default; only the paths explicitly
 # un-ignored below are ever tracked. The book manuscript itself
-# (chapters/, diagrams/, cover/, styles/, typst-partials/, _quarto.yml,
-# and friends) lives in this same working directory but must never be
-# committed here.
+# (chapters/, diagrams/, styles/, typst-partials/, _quarto.yml, and
+# friends) lives in this same working directory but must never be
+# committed here. The single exception is /cover.png: promotional cover
+# artwork for the README, not manuscript content. The full cover/
+# directory (back cover text, wraparound print PDF) stays excluded.
 /*
 !/reference/
 !/reference/**
 !/LICENSE
 !/README.md
 !/.gitignore
+!/cover.png
 
 # Python build artifacts within reference/
 reference/**/__pycache__/
