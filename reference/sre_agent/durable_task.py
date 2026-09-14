@@ -19,7 +19,11 @@ class Step:
 
 class TaskStore:
     def __init__(self, path: str = ":memory:"):
-        self._conn = sqlite3.connect(path)
+        # Same reasoning as Ledger: shared across every request behind a
+        # real ASGI server, so genuinely multi-threaded, not just in a
+        # single-threaded test or CLI call.
+        self._conn = sqlite3.connect(path, check_same_thread=False)
+        self._conn.execute("PRAGMA busy_timeout = 30000")
         self._conn.execute(
             """
             CREATE TABLE IF NOT EXISTS task_steps (
