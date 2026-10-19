@@ -2,6 +2,7 @@
 each producing Typed State (Chapter 36). None of them know about each
 other -- only about the board.
 """
+
 from __future__ import annotations
 
 import json
@@ -57,7 +58,9 @@ def party_identification(model: Model, document: str, board: Blackboard) -> None
 
 def obligation_extraction(model: Model, document: str, board: Blackboard) -> None:
     parties = board.wait_for("parties")
-    prompt = OBLIGATION_PROMPT.format(parties=[p.name for p in parties], document=document)
+    prompt = OBLIGATION_PROMPT.format(
+        parties=[p.name for p in parties], document=document
+    )
     response = model.generate(prompt)
     raw = json.loads(_extract_json(response))
     obligations = [Obligation(**o) for o in raw]

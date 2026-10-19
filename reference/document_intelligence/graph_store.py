@@ -5,6 +5,7 @@ a real graph database underneath instead of an in-memory structure, so
 this actually survives the process and can be queried by more than one
 service at once, exactly what the chapter argues NetworkX doesn't do.
 """
+
 from __future__ import annotations
 
 from neo4j import GraphDatabase
@@ -43,4 +44,7 @@ class Neo4jFactGraph:
                 "RETURN s.name AS subject, r.type AS relationship, o.name AS object",
                 entity=changed_entity,
             )
-            return [(record["subject"], record["relationship"], record["object"]) for record in result]
+            return [
+                (record["subject"], record["relationship"], record["object"])
+                for record in result
+            ]

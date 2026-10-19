@@ -4,6 +4,7 @@ Persists each step's status so any process can resume a plan that was
 interrupted mid-execution, and pairs with Chapter 20's idempotency for
 steps that might get retried after an ambiguous crash.
 """
+
 from __future__ import annotations
 
 import sqlite3

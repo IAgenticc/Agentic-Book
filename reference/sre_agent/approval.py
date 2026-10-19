@@ -5,6 +5,7 @@ action, its reasoning, and its blast radius. Only an explicit approval
 lets it run, and a stale, unresolved proposal expires rather than
 executing on old reasoning.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -20,7 +21,9 @@ class Proposal:
     expires_at: datetime
 
 
-def propose_action(action: str, reasoning: str, blast_radius: str, ttl_minutes: int = 15) -> Proposal:
+def propose_action(
+    action: str, reasoning: str, blast_radius: str, ttl_minutes: int = 15
+) -> Proposal:
     return Proposal(
         action=action,
         reasoning=reasoning,
@@ -29,7 +32,13 @@ def propose_action(action: str, reasoning: str, blast_radius: str, ttl_minutes: 
     )
 
 
-def resolve(proposal: Proposal, decision: str, execute: Callable[[str], dict], ledger, task_id: str) -> dict:
+def resolve(
+    proposal: Proposal,
+    decision: str,
+    execute: Callable[[str], dict],
+    ledger,
+    task_id: str,
+) -> dict:
     """decision is "approved" or "rejected". Every path writes to the ledger,
     since a rejection is worth recording just as much as an approval."""
     if datetime.now(timezone.utc) > proposal.expires_at:
@@ -38,7 +47,9 @@ def resolve(proposal: Proposal, decision: str, execute: Callable[[str], dict], l
 
     if decision == "approved":
         result = execute(proposal.action)
-        ledger.write(task_id, "proposal_approved", {"action": proposal.action, "result": result})
+        ledger.write(
+            task_id, "proposal_approved", {"action": proposal.action, "result": result}
+        )
         return {"status": "executed", "ran": True, "result": result}
 
     ledger.write(task_id, "proposal_rejected", {"action": proposal.action})

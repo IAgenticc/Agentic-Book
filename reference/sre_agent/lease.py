@@ -6,6 +6,7 @@ compare-and-set contract a production system would get from Redis
 (SET NX PX) or a database's conditional write; swap the backend, keep
 the interface.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -44,8 +45,8 @@ class LeaseStore:
         not after the first write like the default deferred transaction
         does. Without it, two threads' SELECTs can both see "unheld"
         before either one writes -- the exact check-then-act race this
-        chapter exists to close, discovered here by a real concurrency
-        test (see test_lease_concurrency.py) rather than caught in review.
+        chapter exists to close (see test_lease_concurrency.py for the
+        concurrency test that exercises it directly).
         """
         now = datetime.now(timezone.utc)
         # Retry SQLITE_LOCKED / SQLITE_BUSY under real contention: busy_timeout
@@ -62,7 +63,8 @@ class LeaseStore:
                 self._conn.execute("BEGIN IMMEDIATE")
                 try:
                     row = self._conn.execute(
-                        "SELECT expires_at FROM leases WHERE resource_id = ?", (resource_id,)
+                        "SELECT expires_at FROM leases WHERE resource_id = ?",
+                        (resource_id,),
                     ).fetchone()
                     if row is not None and datetime.fromisoformat(row[0]) > now:
                         self._conn.rollback()
@@ -103,7 +105,9 @@ class LeaseStore:
         self._conn.close()
 
 
-def with_lease(store: LeaseStore, resource_id: str, holder_id: str, ttl_seconds: int, fn):
+def with_lease(
+    store: LeaseStore, resource_id: str, holder_id: str, ttl_seconds: int, fn
+):
     """Run fn() only while holding the lease; always release afterward."""
     if not store.acquire(resource_id, holder_id, ttl_seconds):
         raise LeaseDenied(f"{resource_id} is held by another task")

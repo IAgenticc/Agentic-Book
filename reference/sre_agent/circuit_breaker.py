@@ -4,6 +4,7 @@ Tracks aggregate failures against one specific dependency and stops
 sending new attempts once it looks broken, instead of every task
 discovering the same break independently.
 """
+
 from __future__ import annotations
 
 import time
@@ -27,7 +28,10 @@ class CircuitBreaker:
 
     def call(self, fn: Callable[[], T]) -> T:
         if self.state == "open":
-            if self.opened_at is not None and time.monotonic() - self.opened_at < self.cooldown_seconds:
+            if (
+                self.opened_at is not None
+                and time.monotonic() - self.opened_at < self.cooldown_seconds
+            ):
                 raise CircuitOpenError("circuit is open")
             self.state = "half_open"
 
@@ -35,7 +39,10 @@ class CircuitBreaker:
             result = fn()
         except Exception:
             self.failure_count += 1
-            if self.state == "half_open" or self.failure_count >= self.failure_threshold:
+            if (
+                self.state == "half_open"
+                or self.failure_count >= self.failure_threshold
+            ):
                 self.state = "open"
                 self.opened_at = time.monotonic()
             raise

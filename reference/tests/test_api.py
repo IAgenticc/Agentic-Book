@@ -3,6 +3,7 @@
 layer). Appendix C walks through each of these scenarios by hand with
 curl; these are the same scenarios kept as permanent regression tests.
 """
+
 from __future__ import annotations
 
 import threading
@@ -18,7 +19,11 @@ def test_restart_flow_for_unhealthy_service():
     with TestClient(app) as client:
         resp = client.post(
             "/incidents",
-            json={"service": "checkout", "actor_id": "on-call-engineer", "actor_role": "on_call"},
+            json={
+                "service": "checkout",
+                "actor_id": "on-call-engineer",
+                "actor_role": "on_call",
+            },
         )
         assert resp.status_code == 200
         body = resp.json()
@@ -30,7 +35,11 @@ def test_healthy_service_needs_no_action():
     with TestClient(app) as client:
         resp = client.post(
             "/incidents",
-            json={"service": "payments", "actor_id": "on-call-engineer", "actor_role": "on_call"},
+            json={
+                "service": "payments",
+                "actor_id": "on-call-engineer",
+                "actor_role": "on_call",
+            },
         )
         assert resp.json()["status"] == "healthy"
 
@@ -39,7 +48,11 @@ def test_read_only_actor_is_escalated_not_restarted():
     with TestClient(app) as client:
         resp = client.post(
             "/incidents",
-            json={"service": "checkout", "actor_id": "auditor", "actor_role": "read_only"},
+            json={
+                "service": "checkout",
+                "actor_id": "auditor",
+                "actor_role": "read_only",
+            },
         )
         assert resp.json()["status"] == "escalated"
 
@@ -108,7 +121,11 @@ def test_unknown_service_is_404():
     with TestClient(app) as client:
         resp = client.post(
             "/incidents",
-            json={"service": "does-not-exist", "actor_id": "on-call-engineer", "actor_role": "on_call"},
+            json={
+                "service": "does-not-exist",
+                "actor_id": "on-call-engineer",
+                "actor_role": "on_call",
+            },
         )
         assert resp.status_code == 404
 
@@ -141,7 +158,11 @@ def test_budget_exhausted_actor_is_denied():
     with TestClient(app) as client:
         resp = client.post(
             "/incidents",
-            json={"service": "checkout", "actor_id": "broke-actor", "actor_role": "on_call"},
+            json={
+                "service": "checkout",
+                "actor_id": "broke-actor",
+                "actor_role": "on_call",
+            },
         )
         assert resp.json()["status"] == "budget_exceeded"
 

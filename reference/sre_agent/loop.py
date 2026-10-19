@@ -4,6 +4,7 @@ The model reasons; a plain, testable stop condition in code decides when
 the loop is actually done, and a fixed step cap guarantees it ends
 regardless of what the model says about its own progress.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -33,4 +34,6 @@ def bounded_loop(
         if is_done(response):
             return LoopResult(status="done", steps=step + 1, transcript=transcript)
         prompt = response
-    return LoopResult(status="max_steps_reached", steps=max_steps, transcript=transcript)
+    return LoopResult(
+        status="max_steps_reached", steps=max_steps, transcript=transcript
+    )

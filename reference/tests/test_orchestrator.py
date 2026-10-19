@@ -98,7 +98,9 @@ def test_open_circuit_breaker_stops_the_status_check():
     deps.breaker = CircuitBreaker(failure_threshold=1, cooldown_seconds=60)
     # Force the breaker open before this incident even starts.
     with pytest.raises(RuntimeError):
-        deps.breaker.call(lambda: (_ for _ in ()).throw(RuntimeError("dependency down")))
+        deps.breaker.call(
+            lambda: (_ for _ in ()).throw(RuntimeError("dependency down"))
+        )
     actor = Actor("eng-1", "on_call")
     with pytest.raises(CircuitOpenError):
         handle_incident(deps, actor, "checkout", task_id="t1")
@@ -111,7 +113,9 @@ def test_model_fallback_is_used_when_primary_is_down():
     actor = Actor("eng-1", "on_call")
     result = handle_incident(deps, actor, "checkout", task_id="t1")
     assert result["status"] == "executed"
-    diagnosis_events = [e for e in deps.ledger.for_task("t1") if e.event_type == "diagnosis"]
+    diagnosis_events = [
+        e for e in deps.ledger.for_task("t1") if e.event_type == "diagnosis"
+    ]
     assert diagnosis_events[0].details["text"] == "restart via fallback"
 
 
@@ -127,5 +131,7 @@ def test_degraded_mode_used_when_both_models_are_down():
     result = handle_incident(deps, actor, "checkout", task_id="t1")
     assert result["status"] == "executed"
     assert deps.registry.get("checkout")["restart_count"] == 1
-    diagnosis_events = [e for e in deps.ledger.for_task("t1") if e.event_type == "diagnosis"]
+    diagnosis_events = [
+        e for e in deps.ledger.for_task("t1") if e.event_type == "diagnosis"
+    ]
     assert diagnosis_events[0].details["source"] == "degraded"

@@ -7,6 +7,7 @@ real server, and every request Appendix C's walkthrough shows is a real
 request against it, not a transcript. See tests/test_api.py for the same
 scenarios kept as permanent regression tests.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -58,8 +59,12 @@ def build_demo_dependencies() -> Dependencies:
         tasks=TaskStore(),
         budget=budget,
         breaker=CircuitBreaker(failure_threshold=3, cooldown_seconds=30.0),
-        primary_model=FakeModel(responder=lambda p: "Restart the service; it is failing health checks."),
-        fallback_model=FakeModel(responder=lambda p: "Restart the service (fallback diagnosis)."),
+        primary_model=FakeModel(
+            responder=lambda p: "Restart the service; it is failing health checks."
+        ),
+        fallback_model=FakeModel(
+            responder=lambda p: "Restart the service (fallback diagnosis)."
+        ),
     )
 
 
@@ -108,5 +113,7 @@ def create_incident(req: IncidentRequest):
 def get_incident_ledger(task_id: str):
     entries = app.state.deps.ledger.for_task(task_id)
     if not entries:
-        raise HTTPException(status_code=404, detail="no ledger entries for this task_id")
+        raise HTTPException(
+            status_code=404, detail="no ledger entries for this task_id"
+        )
     return [asdict(e) for e in entries]

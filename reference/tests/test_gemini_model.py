@@ -3,6 +3,7 @@ response parsing, error mapping) without a live network call. The live
 path itself is proven separately by scripts/smoke_test_model_fallback.py
 and scripts/smoke_test_openai_compatible.py.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest

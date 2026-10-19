@@ -4,6 +4,7 @@ offline for anyone without Docker -- start it with:
     docker run -d --name asr-neo4j -p 7474:7474 -p 7687:7687 \
         -e NEO4J_AUTH=neo4j/testpassword123 neo4j:5-community
 """
+
 import pytest
 
 from document_intelligence.graph_store import Neo4jFactGraph
@@ -24,7 +25,9 @@ def _neo4j_available() -> bool:
         return False
 
 
-pytestmark = pytest.mark.skipif(not _neo4j_available(), reason="Neo4j is not running on localhost:7687")
+pytestmark = pytest.mark.skipif(
+    not _neo4j_available(), reason="Neo4j is not running on localhost:7687"
+)
 
 
 @pytest.fixture

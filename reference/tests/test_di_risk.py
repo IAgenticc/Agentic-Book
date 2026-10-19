@@ -18,4 +18,7 @@ def test_high_risk_when_under_legal_hold_even_without_pii():
 
 
 def test_high_risk_takes_priority_over_medium():
-    assert classify_risk(DocumentMetadata(contains_pii=True, crosses_data_boundary=True)) == "high"
+    assert (
+        classify_risk(DocumentMetadata(contains_pii=True, crosses_data_boundary=True))
+        == "high"
+    )

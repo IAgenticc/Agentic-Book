@@ -1,6 +1,10 @@
 from agent_core.models import FakeModel
 from document_intelligence.blackboard import Blackboard
-from document_intelligence.specialists import clause_extraction, obligation_extraction, party_identification
+from document_intelligence.specialists import (
+    clause_extraction,
+    obligation_extraction,
+    party_identification,
+)
 
 CONTRACT = """This Agreement is entered into between Acme Corp ("Buyer") and
 Widget Inc ("Seller"). Buyer shall pay Seller $10,000 within 30 days of
@@ -9,7 +13,9 @@ delivery."""
 
 def test_party_identification_writes_typed_parties_to_the_board():
     model = FakeModel(
-        responder=lambda p: '[{"name": "Acme Corp", "role": "buyer"}, {"name": "Widget Inc", "role": "seller"}]'
+        responder=lambda p: (
+            '[{"name": "Acme Corp", "role": "buyer"}, {"name": "Widget Inc", "role": "seller"}]'
+        )
     )
     board = Blackboard()
     party_identification(model, CONTRACT, board)
@@ -30,7 +36,9 @@ def test_specialist_raises_on_malformed_json_instead_of_writing_garbage():
 
 
 def test_specialist_handles_a_markdown_fenced_json_response():
-    model = FakeModel(responder=lambda p: '```json\n[{"heading": "Payment", "text": "test"}]\n```')
+    model = FakeModel(
+        responder=lambda p: '```json\n[{"heading": "Payment", "text": "test"}]\n```'
+    )
     board = Blackboard()
     clause_extraction(model, CONTRACT, board)
     clauses = board.read("clauses")
@@ -41,7 +49,9 @@ def test_obligation_extraction_waits_for_parties_before_running():
     board = Blackboard()
     board.write("parties", [])  # simulate party_identification already having completed
     model = FakeModel(
-        responder=lambda p: '[{"party": "Acme Corp", "description": "pay", "source_clause": "Buyer shall pay Seller $10,000 within 30 days of delivery."}]'
+        responder=lambda p: (
+            '[{"party": "Acme Corp", "description": "pay", "source_clause": "Buyer shall pay Seller $10,000 within 30 days of delivery."}]'
+        )
     )
     obligation_extraction(model, CONTRACT, board)
     obligations = board.read("obligations")

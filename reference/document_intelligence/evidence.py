@@ -6,6 +6,7 @@ conclude-second, then independently verifies the quote actually appears
 in the source -- Chapter 23's Verification Gate again, applied to a
 claim that comes with its own evidence attached.
 """
+
 from __future__ import annotations
 
 import re
@@ -43,8 +44,14 @@ def parse_quote_and_answer(response: str) -> tuple[str | None, str]:
 
 
 def answer_with_evidence(model: Model, question: str, document: str) -> dict:
-    response = model.generate(EVIDENCE_FIRST_PROMPT.format(question=question, document=document))
+    response = model.generate(
+        EVIDENCE_FIRST_PROMPT.format(question=question, document=document)
+    )
     quote, answer = parse_quote_and_answer(response)
     if quote and not verify_extraction(document, "quote", quote):
-        return {"answer": None, "quote": quote, "reason": "quoted text not found in source"}
+        return {
+            "answer": None,
+            "quote": quote,
+            "reason": "quoted text not found in source",
+        }
     return {"answer": answer, "quote": quote}

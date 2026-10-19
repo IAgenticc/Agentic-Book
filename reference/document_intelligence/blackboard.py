@@ -5,6 +5,7 @@ rather than through an orchestrator that explicitly decides who runs
 when. Each specialist watches the board for what it needs, contributes
 its own findings once it has enough to work with.
 """
+
 from __future__ import annotations
 
 import threading

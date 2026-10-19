@@ -10,6 +10,7 @@ This is the concrete thing Chapter 41 walks through end to end:
   6. Proposal-Approval-Execution (Ch 18) - a human decides on the fix
   7. Durable Task Graph (Ch 22) + Idempotent Tool Action (Ch 20) - the fix itself
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,7 +22,13 @@ from .durable_task import Step, TaskStore, resume
 from .ledger import Ledger
 from .lease import LeaseDenied, LeaseStore, with_lease
 from .models import Model, call_with_fallback
-from .tools import Actor, ServiceRegistry, get_service_status, restart_service, tools_for
+from .tools import (
+    Actor,
+    ServiceRegistry,
+    get_service_status,
+    restart_service,
+    tools_for,
+)
 
 
 @dataclass
@@ -43,8 +50,12 @@ def degraded_diagnosis(_prompt: str) -> dict:
     return {"text": "restart", "source": "degraded", "elapsed": 0.0}
 
 
-def handle_incident(deps: Dependencies, actor: Actor, service: str, task_id: str) -> dict:
-    deps.ledger.write(task_id, "incident_started", {"service": service, "actor": actor.id})
+def handle_incident(
+    deps: Dependencies, actor: Actor, service: str, task_id: str
+) -> dict:
+    deps.ledger.write(
+        task_id, "incident_started", {"service": service, "actor": actor.id}
+    )
 
     def do_incident() -> dict:
         # Capability scoping (Ch 16): decide what this actor can even see.
@@ -74,7 +85,11 @@ def handle_incident(deps: Dependencies, actor: Actor, service: str, task_id: str
 
         if "restart_service" not in available:
             deps.ledger.write(task_id, "escalated_no_capability", {"actor": actor.id})
-            return {"status": "escalated", "ran": False, "reason": "actor cannot restart"}
+            return {
+                "status": "escalated",
+                "ran": False,
+                "reason": "actor cannot restart",
+            }
 
         # Proposal-Approval-Execution (Ch 18).
         proposal = propose_action(
@@ -90,7 +105,10 @@ def handle_incident(deps: Dependencies, actor: Actor, service: str, task_id: str
                 Step(
                     name="restart",
                     execute=lambda: restart_service(
-                        deps.registry, deps.idempotency_store, target_service, idempotency_key=task_id
+                        deps.registry,
+                        deps.idempotency_store,
+                        target_service,
+                        idempotency_key=task_id,
                     ),
                 )
             ]
@@ -102,7 +120,15 @@ def handle_incident(deps: Dependencies, actor: Actor, service: str, task_id: str
         return outcome
 
     try:
-        return with_lease(deps.leases, resource_id=service, holder_id=task_id, ttl_seconds=120, fn=do_incident)
+        return with_lease(
+            deps.leases,
+            resource_id=service,
+            holder_id=task_id,
+            ttl_seconds=120,
+            fn=do_incident,
+        )
     except LeaseDenied as exc:
-        deps.ledger.write(task_id, "lease_denied", {"service": service, "reason": str(exc)})
+        deps.ledger.write(
+            task_id, "lease_denied", {"service": service, "reason": str(exc)}
+        )
         return {"status": "lease_denied", "ran": False}

@@ -5,6 +5,7 @@ explicit, validated schema. A specialist writing the wrong shape fails
 immediately, at the point of the mistake, instead of three specialists
 downstream.
 """
+
 from __future__ import annotations
 
 from pydantic import BaseModel

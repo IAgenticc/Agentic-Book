@@ -24,7 +24,9 @@ def test_wait_for_blocks_until_written_then_returns_the_value():
     t = threading.Thread(target=waiter)
     t.start()
     time.sleep(0.05)  # give the waiter a real chance to actually be blocked
-    assert "parties" not in result  # confirms it was genuinely waiting, not racing ahead
+    assert (
+        "parties" not in result
+    )  # confirms it was genuinely waiting, not racing ahead
     parties = [PartyRecord(name="Acme Corp", role="buyer")]
     board.write("parties", parties)
     t.join(timeout=2)
@@ -42,4 +44,6 @@ def test_snapshot_is_a_copy_not_a_live_reference():
     board.write("parties", [PartyRecord(name="Acme Corp", role="buyer")])
     snap = board.snapshot()
     board.write("parties", [PartyRecord(name="Widget Inc", role="seller")])
-    assert snap.parties[0].name == "Acme Corp"  # the snapshot didn't change underneath us
+    assert (
+        snap.parties[0].name == "Acme Corp"
+    )  # the snapshot didn't change underneath us

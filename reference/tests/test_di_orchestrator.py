@@ -37,7 +37,7 @@ def test_process_document_flags_unverified_facts_without_discarding_the_rest():
         if "named party" in prompt:
             return '[{"name": "Ghost Corp", "role": "buyer"}]'  # not in the document at all
         if "obligations" in prompt:
-            return '[]'
+            return "[]"
         if "distinct clauses" in prompt:
             return '[{"heading": "Payment", "text": "Buyer shall pay Seller $10,000 within 30 days of delivery."}]'
         raise AssertionError(prompt)
@@ -47,7 +47,9 @@ def test_process_document_flags_unverified_facts_without_discarding_the_rest():
 
     assert result["verified"] is False
     assert result["verification"]["parties"][0]["verified"] is False
-    assert result["verification"]["clauses"][0]["verified"] is True  # unaffected by the other field's failure
+    assert (
+        result["verification"]["clauses"][0]["verified"] is True
+    )  # unaffected by the other field's failure
 
 
 def test_process_document_reports_the_risk_tier():

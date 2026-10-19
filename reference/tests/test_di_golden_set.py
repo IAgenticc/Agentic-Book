@@ -1,8 +1,22 @@
-from document_intelligence.golden_set import GoldenCase, check_for_regressions, run_golden_set
+from document_intelligence.golden_set import (
+    GoldenCase,
+    check_for_regressions,
+    run_golden_set,
+)
 
 CASES = [
-    GoldenCase(name="termination_notice", document="60 days written notice.", question="q1", expected_answer_contains="60 days"),
-    GoldenCase(name="payment_terms", document="pay within 30 days.", question="q2", expected_answer_contains="30 days"),
+    GoldenCase(
+        name="termination_notice",
+        document="60 days written notice.",
+        question="q1",
+        expected_answer_contains="60 days",
+    ),
+    GoldenCase(
+        name="payment_terms",
+        document="pay within 30 days.",
+        question="q2",
+        expected_answer_contains="30 days",
+    ),
 ]
 
 

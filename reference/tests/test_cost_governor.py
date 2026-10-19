@@ -1,6 +1,11 @@
 import pytest
 
-from sre_agent.cost_governor import BudgetExceeded, BudgetStore, call_with_budget, check_and_reserve_budget
+from sre_agent.cost_governor import (
+    BudgetExceeded,
+    BudgetStore,
+    call_with_budget,
+    check_and_reserve_budget,
+)
 
 
 def test_reserve_succeeds_within_budget():
@@ -13,7 +18,9 @@ def test_reserve_fails_over_budget():
     store = BudgetStore(daily_limit_by_caller={"tenant-a": 10.0})
     check_and_reserve_budget(store, "tenant-a", 9.0)
     assert check_and_reserve_budget(store, "tenant-a", 2.0) is False
-    assert store.remaining("tenant-a") == 1.0  # the failed attempt did not spend anything
+    assert (
+        store.remaining("tenant-a") == 1.0
+    )  # the failed attempt did not spend anything
 
 
 def test_one_tenant_exhausting_budget_does_not_affect_another():

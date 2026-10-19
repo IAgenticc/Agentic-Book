@@ -10,6 +10,7 @@ which is the actual point of Chapter 35's pattern: no orchestrator
 explicitly sequencing all three, just one specialist expressing the one
 dependency it actually has.
 """
+
 from __future__ import annotations
 
 import threading
@@ -20,18 +21,39 @@ from .specialists import clause_extraction, obligation_extraction, party_identif
 from .verification import all_verified, verify_document_state
 
 
+class SpecialistFailure(RuntimeError):
+    """One or more specialists failed to complete. A thread's own exception
+    never reaches the thread that joined it, so each specialist is run
+    through this wrapper and its exception, if any, collected and raised
+    here instead of disappearing silently."""
+
+    def __init__(self, errors: dict[str, BaseException]):
+        super().__init__(", ".join(f"{name}: {err}" for name, err in errors.items()))
+        self.errors = errors
+
+
 def process_document(model, document: str, metadata: DocumentMetadata) -> dict:
     board = Blackboard()
+    errors: dict[str, BaseException] = {}
+
+    def run(name, specialist):
+        try:
+            specialist(model, document, board)
+        except Exception as exc:  # noqa: BLE001 -- re-raised as SpecialistFailure below
+            errors[name] = exc
 
     threads = [
-        threading.Thread(target=party_identification, args=(model, document, board)),
-        threading.Thread(target=obligation_extraction, args=(model, document, board)),
-        threading.Thread(target=clause_extraction, args=(model, document, board)),
+        threading.Thread(target=run, args=("parties", party_identification)),
+        threading.Thread(target=run, args=("obligations", obligation_extraction)),
+        threading.Thread(target=run, args=("clauses", clause_extraction)),
     ]
     for t in threads:
         t.start()
     for t in threads:
         t.join()
+
+    if errors:
+        raise SpecialistFailure(errors)
 
     state = board.snapshot()
     verification = verify_document_state(document, state)

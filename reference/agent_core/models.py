@@ -4,6 +4,7 @@ A Model is anything with a `generate(prompt: str) -> str` method. Real code
 talks to Claude through AnthropicModel; tests and the demo CLI use FakeModel
 so nothing here requires a live API key to run.
 """
+
 from __future__ import annotations
 
 import time
@@ -57,15 +58,17 @@ class AnthropicModel:
                 messages=[{"role": "user", "content": prompt}],
             )
             return response.content[0].text
-        except Exception as exc:  # narrow this in production to the SDK's own error types
+        except (
+            Exception
+        ) as exc:  # narrow this in production to the SDK's own error types
             raise ModelUnavailable(str(exc)) from exc
 
 
 class GeminiModel:
     """Thin wrapper around the official Google GenAI SDK (`google-genai`)
-   : Chapter 26's concrete "different provider" fallback alongside
-    AnthropicModel. Imported lazily, same as AnthropicModel, so the rest
-    of this package works without the `google-genai` package installed."""
+    : Chapter 26's concrete "different provider" fallback alongside
+     AnthropicModel. Imported lazily, same as AnthropicModel, so the rest
+     of this package works without the `google-genai` package installed."""
 
     def __init__(self, model: str = "gemini-3.6-flash", api_key: str | None = None):
         from google import genai  # noqa: PLC0415 (intentional lazy import)
@@ -75,9 +78,13 @@ class GeminiModel:
 
     def generate(self, prompt: str) -> str:
         try:
-            response = self._client.models.generate_content(model=self._model, contents=prompt)
+            response = self._client.models.generate_content(
+                model=self._model, contents=prompt
+            )
             return response.text
-        except Exception as exc:  # narrow this in production to the SDK's own error types
+        except (
+            Exception
+        ) as exc:  # narrow this in production to the SDK's own error types
             raise ModelUnavailable(str(exc)) from exc
 
 
@@ -102,7 +109,9 @@ class OpenAICompatibleModel:
                 messages=[{"role": "user", "content": prompt}],
             )
             return response.choices[0].message.content
-        except Exception as exc:  # narrow this in production to the SDK's own error types
+        except (
+            Exception
+        ) as exc:  # narrow this in production to the SDK's own error types
             raise ModelUnavailable(str(exc)) from exc
 
 
@@ -124,7 +133,11 @@ def call_with_fallback(
         start = time.monotonic()
         try:
             text = model.generate(prompt)
-            return {"text": text, "source": "model", "elapsed": time.monotonic() - start}
+            return {
+                "text": text,
+                "source": "model",
+                "elapsed": time.monotonic() - start,
+            }
         except ModelUnavailable:
             continue
     return degraded(prompt)

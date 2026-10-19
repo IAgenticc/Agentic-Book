@@ -15,9 +15,9 @@ at the same on-disk database file. That matters twice over:
   - A real file (not a shared-cache in-memory database) is what gives
     ordinary SQLITE_BUSY + busy_timeout semantics. Shared-cache mode has
     its own SQLITE_LOCKED_SHAREDCACHE behavior that doesn't always honor
-    busy_timeout the same way -- discovered here, the hard way, the first
-    time this test was written; see lease.py's retry loop in acquire().
+    busy_timeout the same way; see lease.py's retry loop in acquire().
 """
+
 import tempfile
 import threading
 from pathlib import Path
@@ -42,7 +42,9 @@ def test_exactly_one_thread_wins_a_true_concurrent_race():
             finally:
                 store.close()
 
-        threads = [threading.Thread(target=try_acquire, args=(f"task-{i}",)) for i in range(50)]
+        threads = [
+            threading.Thread(target=try_acquire, args=(f"task-{i}",)) for i in range(50)
+        ]
         for t in threads:
             t.start()
         for t in threads:

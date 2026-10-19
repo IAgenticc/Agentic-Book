@@ -8,6 +8,7 @@ at either the instance or the class level. A thin proxy that forwards
 everything except execute() is the correct way to inject a controlled
 failure here.
 """
+
 import sqlite3
 
 import pytest
@@ -36,7 +37,9 @@ class _FlakyConnProxy:
 def test_acquire_raises_after_exhausting_retries_on_sustained_lock_contention():
     store = LeaseStore()
     store._conn = _FlakyConnProxy(
-        store._conn, fail_sql_prefix="BEGIN", exc=sqlite3.OperationalError("database table is locked")
+        store._conn,
+        fail_sql_prefix="BEGIN",
+        exc=sqlite3.OperationalError("database table is locked"),
     )
     with pytest.raises(sqlite3.OperationalError):
         store.acquire("checkout", "task-a", ttl_seconds=60)
@@ -45,7 +48,9 @@ def test_acquire_raises_after_exhausting_retries_on_sustained_lock_contention():
 def test_acquire_rolls_back_and_reraises_on_an_unexpected_error():
     store = LeaseStore()
     real_conn = store._conn
-    store._conn = _FlakyConnProxy(real_conn, fail_sql_prefix="INSERT", exc=ValueError("simulated corruption"))
+    store._conn = _FlakyConnProxy(
+        real_conn, fail_sql_prefix="INSERT", exc=ValueError("simulated corruption")
+    )
 
     with pytest.raises(ValueError):
         store.acquire("checkout", "task-a", ttl_seconds=60)
@@ -60,7 +65,9 @@ def test_release_rolls_back_and_reraises_on_an_unexpected_error():
     store = LeaseStore()
     store.acquire("checkout", "task-a", ttl_seconds=60)
     real_conn = store._conn
-    store._conn = _FlakyConnProxy(real_conn, fail_sql_prefix="DELETE", exc=ValueError("simulated failure"))
+    store._conn = _FlakyConnProxy(
+        real_conn, fail_sql_prefix="DELETE", exc=ValueError("simulated failure")
+    )
 
     with pytest.raises(ValueError):
         store.release("checkout", "task-a")

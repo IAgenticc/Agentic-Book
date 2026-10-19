@@ -1,6 +1,14 @@
 import pytest
 
-from sre_agent.tools import Actor, ServiceRegistry, UnknownServiceError, get_service_status, restart_service, scale_to, tools_for
+from sre_agent.tools import (
+    Actor,
+    ServiceRegistry,
+    UnknownServiceError,
+    get_service_status,
+    restart_service,
+    scale_to,
+    tools_for,
+)
 
 
 def make_registry():

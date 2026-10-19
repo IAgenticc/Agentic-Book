@@ -4,6 +4,7 @@ A durable, queryable-by-task-id record of every consequential decision.
 Backed by SQLite so it survives the process, and one connection per
 Ledger instance keeps this simple to reason about and test.
 """
+
 from __future__ import annotations
 
 import json
@@ -46,7 +47,12 @@ class Ledger:
     def write(self, task_id: str, event_type: str, details: dict) -> None:
         self._conn.execute(
             "INSERT INTO ledger (task_id, timestamp, event_type, details) VALUES (?, ?, ?, ?)",
-            (task_id, datetime.now(timezone.utc).isoformat(), event_type, json.dumps(details)),
+            (
+                task_id,
+                datetime.now(timezone.utc).isoformat(),
+                event_type,
+                json.dumps(details),
+            ),
         )
         self._conn.commit()
 
@@ -57,7 +63,9 @@ class Ledger:
             (task_id,),
         ).fetchall()
         return [
-            LedgerEntry(task_id=r[0], timestamp=r[1], event_type=r[2], details=json.loads(r[3]))
+            LedgerEntry(
+                task_id=r[0], timestamp=r[1], event_type=r[2], details=json.loads(r[3])
+            )
             for r in rows
         ]
 

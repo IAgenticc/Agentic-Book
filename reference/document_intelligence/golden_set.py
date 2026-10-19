@@ -4,6 +4,7 @@ A fixed set of representative cases run in full before shipping any
 change, checked specifically for regressions -- cases that used to pass
 and now don't -- not just whether new results look acceptable overall.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -25,7 +26,9 @@ class Result:
     actual: dict
 
 
-def run_golden_set(cases: list[GoldenCase], answer_fn: Callable[[str, str], dict]) -> list[Result]:
+def run_golden_set(
+    cases: list[GoldenCase], answer_fn: Callable[[str, str], dict]
+) -> list[Result]:
     results = []
     for case in cases:
         actual = answer_fn(case.question, case.document)

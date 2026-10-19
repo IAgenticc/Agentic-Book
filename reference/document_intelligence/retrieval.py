@@ -3,6 +3,7 @@ real nearest-neighbor search over embedded chunks, the mechanism
 Chapter 8's "Build it" section describes `vector_db.search` as standing
 in for.
 """
+
 from __future__ import annotations
 
 import psycopg
@@ -27,9 +28,13 @@ class PgVectorStore:
         self._conn.execute("TRUNCATE chunks")
 
     def add_chunk(self, text: str, embedding: list[float]) -> None:
-        self._conn.execute("INSERT INTO chunks (text, embedding) VALUES (%s, %s)", (text, embedding))
+        self._conn.execute(
+            "INSERT INTO chunks (text, embedding) VALUES (%s, %s)", (text, embedding)
+        )
 
-    def search(self, query_embedding: list[float], top_k: int = 3) -> list[tuple[str, float]]:
+    def search(
+        self, query_embedding: list[float], top_k: int = 3
+    ) -> list[tuple[str, float]]:
         """Approximate nearest-neighbor search using pgvector's L2 distance
         operator (<->) -- the real mechanism, not a mock of it."""
         cur = self._conn.execute(

@@ -4,16 +4,18 @@ Real, tested implementations of both canonical systems from *Agentic Systems
 Engineering*: the SRE Agent and the Document Intelligence Agent, sharing one
 model interface (`agent_core/`). Every module maps to the chapter that
 introduces its pattern. Tests run against `FakeModel`, a deterministic
-stand-in, so the whole suite runs offline with no API key required.
+stand-in, so the whole suite runs offline with no API key required. Each
+system also has a real FastAPI service in front of it (`sre_agent/api.py`,
+`document_intelligence/api.py`), which Appendix C walks through request by
+request with curl and Swagger.
 
 ## Layout
 
 ```
-agent_core/            Shared model interface (Chapter 26's Model Fallback)
-sre_agent/              Case study: Chapter 41
-document_intelligence/  Case study: Chapter 42
+agent_core/             Shared model interface (Chapter 26's Model Fallback)
+sre_agent/              Case study: Chapter 41 (api.py: Appendix C)
+document_intelligence/  Case study: Chapter 42 (api.py: Appendix C)
 tests/                  test_*.py (sre_agent) and test_di_*.py (document_intelligence)
-scripts/                Live smoke tests, kept out of the pytest suite
 ```
 
 ## Chapter map
@@ -54,7 +56,7 @@ scripts/                Live smoke tests, kept out of the pytest suite
 |---|---|---|
 | `models.py` | 26 | Model Fallback: `FakeModel`, `AnthropicModel`, `GeminiModel`, `OpenAICompatibleModel` |
 
-## Running the API (Appendix C)
+## Running the APIs (Appendix C)
 
 ```
 cd reference
@@ -66,8 +68,20 @@ uvicorn sre_agent.api:app --reload
 from `orchestrator.py`. `tests/test_api.py` covers it end to end: concurrent requests racing
 for the same lease, a repeated request that doesn't re-run a completed step, a circuit that
 opens after repeated failures, and more. Appendix C walks through the same scenarios with
-`curl` and explains a real cross-thread SQLite bug this exact code found the first time it
-ran behind a real server instead of a direct function call.
+curl and Swagger, both against the running server.
+
+```
+cd reference
+pip install -e ".[dev,gemini,api]"
+export GEMINI_API_KEY=...
+uvicorn document_intelligence.api:app --port 8001 --reload
+```
+
+`POST /documents`, backed by exactly `process_document` from `orchestrator.py`, with an
+optional `question` field that also runs `answer_with_evidence`. Unlike the SRE Agent's demo,
+this one talks to a real model by default, since what it extracts from a real document is the
+actual point. `tests/test_di_api.py` covers it end to end; Appendix C walks through the same
+requests with curl and Swagger, including a real public SEC filing as a sample document.
 
 ## Running the tests
 
@@ -107,66 +121,13 @@ pip install -e ".[dev]" neo4j "psycopg[binary]" pgvector
 pytest tests/test_di_graph_store.py tests/test_di_retrieval.py -v
 ```
 
-Both found a real, specific bug the first time they ran: pgvector's `<->`
-distance operator needs its parameter explicitly cast (`%s::vector`) when
-it isn't going into a typed column directly: psycopg won't infer it, and
-the error only shows up against a real database, never in a mock.
-
-## Live smoke tests (optional, not part of CI)
-
-Six scripts prove real SDK wiring end to end, deliberately kept out of the
-pytest suite: tests should stay fast, free, and deterministic, which a
-live network call to a model API is none of.
-
-```
-export GEMINI_API_KEY=...   # read from your own env, never hardcoded
-
-python scripts/smoke_test_model_fallback.py
-# Chapter 26's fallback chain: a fake failing primary, GeminiModel (the
-# real google-genai SDK) as the real "different provider" fallback.
-
-python scripts/smoke_test_openai_compatible.py
-# The real `openai` SDK, unmodified, pointed at Gemini's OpenAI-compatible
-# endpoint instead of OpenAI's own -- proves one wrapper class covers
-# any OpenAI-compatible provider.
-
-python scripts/smoke_test_end_to_end.py
-# The FULL SRE Agent handle_incident orchestrator -- ledger, lease,
-# circuit breaker, capability scoping, cost governor, approval, durable
-# task, idempotency -- with a real live model actually making the
-# diagnosis call, and a real (different-SDK) fallback behind it.
-# Nothing in this run is FakeModel.
-
-python scripts/smoke_test_end_to_end_fallback.py
-# The same full orchestrator, but the primary model name is genuinely
-# invalid, so Gemini's own API returns a real error. Proves the
-# fallback path itself activates under a real failure, not just that
-# it's present and unexercised.
-
-python scripts/smoke_test_document_intelligence.py
-# The FULL Document Intelligence Agent process_document orchestrator --
-# three specialists coordinating through a real Blackboard, a real
-# model actually extracting parties/obligations/clauses, independent
-# verification against the source text, risk classification, and an
-# evidence-first question answered afterward. Found and fixed two real
-# whitespace-normalization bugs in verification.py and evidence.py this
-# way -- a wrapped line in the source document broke an exact substring
-# check that mocked tests never would have caught.
-
-python scripts/smoke_test_real_document.py
-# The same orchestrator run against a genuine public document instead of
-# a hand-written sample: a real services agreement pulled from SEC
-# EDGAR's full-text filing archive, with real messy formatting. Found a
-# second, different whitespace bug this way: ASCII-art dash underlines
-# beneath section headings (common in real legal filings) land as a
-# stray token mid-sentence once the document is flattened to plain
-# text. Fixed in the same normalization step as the first bug.
-```
+pgvector's `<->` distance operator needs its parameter explicitly cast
+(`%s::vector`) when it isn't going into a typed column directly: psycopg
+won't infer it on its own.
 
 `OpenAICompatibleModel` exists because several providers, Gemini included,
 expose an OpenAI-compatible chat-completions endpoint. One wrapper class
-covers all of them: only `base_url` and `model` change: confirmed
-working end to end against a live Gemini key rather than assumed.
+covers all of them: only `base_url` and `model` change.
 
 ## Design notes
 
@@ -182,10 +143,9 @@ working end to end against a live Gemini key rather than assumed.
   together.
 - `verification.py`'s `verify_extraction` normalizes whitespace, and strips
   runs of dashes/underscores/equals signs, before comparing a claimed quote
-  to the source document. Neither was a design decision made up front:
-  both were found live: a wrapped line in a hand-written contract, then a
-  dash-underlined section heading in a real SEC filing, each breaking an
-  exact substring check on a quote the model had gotten completely right.
+  to the source document, so a line-wrapped sentence or a dash-underlined
+  section heading in the raw text doesn't get rejected as a fabricated quote
+  when the model actually got it right.
 - `graph_store.py`'s `Neo4jFactGraph` and `document_intelligence/orchestrator.py`'s
   in-chapter NetworkX example share one interface on purpose: `find_affected`
   answers the same question either way, in-process graph or real database,

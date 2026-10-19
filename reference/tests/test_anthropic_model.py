@@ -4,6 +4,7 @@ to run one with here), but it does exercise the real code path: request
 shape, response parsing, and the ModelUnavailable error mapping, which a
 live call alone wouldn't prove stays correct on every future edit.
 """
+
 from unittest.mock import MagicMock, patch
 
 import pytest
